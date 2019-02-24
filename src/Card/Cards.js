@@ -12,9 +12,12 @@ import {
   H2,
   Icon,
   Text,
-  View
+  View,
+  Root,
+  Toast
 } from "native-base";
 import { getDrawACard, getShuffleTheCards } from "./CardService";
+import getRule from "../utils/RuleGenerator";
 
 class Cards extends Component {
   state = {
@@ -43,6 +46,7 @@ class Cards extends Component {
     const { data } = await getShuffleTheCards();
     this.setState({ deck: data });
     await this.handleTapToDraw();
+    this._getCardRule();
   }
 
   handleTapToDraw = async () => {
@@ -58,85 +62,99 @@ class Cards extends Component {
     // this.setState({ deck: currentDeck });
     const count = this.state.cardTracker + 1;
     this.setState({ cardTracker: count });
+    this.handleViewRule();
+  };
 
-    console.warn(this.state.deck.cards[count].code);
+  handleViewRule = () => {
+    this._getCardRule();
+    this._showRule();
+  };
+
+  _getCardRule = () => {
+    const track = this.state.deck.cards[this.state.cardTracker].code;
+    const rule = getRule(track);
+    this.setState({ rule });
+  };
+
+  _showRule = () => {
+    Toast.show({
+      text: this.state.rule,
+      buttonText: "Okay",
+      duration: 10000,
+      buttonTextStyle: { color: "#FF4081" }
+    });
   };
 
   render() {
     const { tapped, deck } = this.state;
     return (
-      <Container>
-        {tapped ? (
-          <View
-            style={{ marginTop: 30, flex: 1, justifyContent: "space-between" }}
-          >
-            <DeckSwiper
-              onSwipeLeft={() => this.handleOnSwipe()}
-              onSwipeRight={() => this.handleOnSwipe()}
-              dataSource={deck.cards}
-              style={styles.container}
-              renderEmpty={() => (
-                <View style={{ alignSelf: "center" }}>
-                  <Text style={{ color: "#F44336" }}>No More</Text>
-                </View>
-              )}
-              renderItem={item => (
-                <Card style={{ elevation: 3 }}>
-                  <CardItem cardBody>
-                    <Image
-                      style={{ height: 600, flex: 1 }}
-                      source={{
-                        uri: `https://deckofcardsapi.com/static/img/${
-                          item.code
-                        }.png`
-                      }}
-                    />
-                  </CardItem>
-                </Card>
-              )}
-            />
-          </View>
-        ) : (
-          <View style={styles.container}>
-            <H1
-              style={{ color: "#F44336" }}
-              onPress={() => this.setState({ tapped: true })}
-            >
-              Tap to draw the 1st card!
-            </H1>
-          </View>
-        )}
-        <View style={{ marginLeft: 20, marginRight: 20, flex: 0.25 }}>
-          {tapped && (
-            <ScrollView>
-              <H2>{this.state.deck.cards[this.state.cardTracker].code}</H2>
-            </ScrollView>
-          )}
-        </View>
-        <Footer style={styles.footer}>
-          <FooterTab>
-            <Button vertical>
-              <Icon style={{ color: "#FF4081" }} name="home" />
-              <Text>Home</Text>
-            </Button>
-            <Button
-              vertical
-              onPress={() => {
-                console.warn(
-                  this.state.deck.cards[this.state.cardTracker].code
-                );
+      <Root>
+        <Container>
+          {tapped ? (
+            <View
+              style={{
+                marginTop: 30,
+                flex: 1,
+                justifyContent: "space-between"
               }}
             >
-              <Icon style={{ color: "#FF4081" }} name="paper" />
-              <Text>Rules</Text>
-            </Button>
-            <Button vertical>
-              <Icon style={{ color: "#FF4081" }} name="shuffle" />
-              <Text>Reshuffle</Text>
-            </Button>
-          </FooterTab>
-        </Footer>
-      </Container>
+              <DeckSwiper
+                onSwipeLeft={() => this.handleOnSwipe()}
+                onSwipeRight={() => this.handleOnSwipe()}
+                dataSource={deck.cards}
+                style={styles.container}
+                renderEmpty={() => (
+                  <View style={{ alignSelf: "center" }}>
+                    <Text style={{ color: "#F44336" }}>No More</Text>
+                  </View>
+                )}
+                renderItem={item => (
+                  <Card style={{ elevation: 3 }}>
+                    <CardItem cardBody>
+                      <Image
+                        style={{ height: 600, flex: 1 }}
+                        source={{
+                          uri: `https://deckofcardsapi.com/static/img/${
+                            item.code
+                          }.png`
+                        }}
+                      />
+                    </CardItem>
+                  </Card>
+                )}
+              />
+            </View>
+          ) : (
+            <View style={styles.container}>
+              <H1
+                style={{ color: "#F44336" }}
+                onPress={() => this.setState({ tapped: true })}
+              >
+                Tap to draw the 1st card!
+              </H1>
+            </View>
+          )}
+
+          {tapped && (
+            <Footer style={styles.footer}>
+              <FooterTab>
+                <Button vertical>
+                  <Icon style={{ color: "#FF4081" }} name="home" />
+                  <Text>Home</Text>
+                </Button>
+                <Button vertical onPress={() => this.handleViewRule()}>
+                  <Icon style={{ color: "#FF4081" }} name="paper" />
+                  <Text>Rules</Text>
+                </Button>
+                <Button vertical>
+                  <Icon style={{ color: "#FF4081" }} name="shuffle" />
+                  <Text>Reshuffle</Text>
+                </Button>
+              </FooterTab>
+            </Footer>
+          )}
+        </Container>
+      </Root>
     );
   }
 }
