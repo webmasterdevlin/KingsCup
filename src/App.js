@@ -8,7 +8,7 @@
  */
 
 import React, { Component } from "react";
-import { Platform, StyleSheet, Image } from "react-native";
+import { Platform, NetInfo, StyleSheet, Image } from "react-native";
 import {
   Root,
   Container,
@@ -33,18 +33,53 @@ import {
   Body,
   Left,
   Right,
-  SwipeRow
+  SwipeRow,
+  Toast
 } from "native-base";
 import beer from "./assets/beermug.png";
 
 class App extends Component {
   state = {
-    isPlaying: false
+    isPlaying: false,
+    isConnected: true
   };
 
-  handlePress = () => {
-    console.warn("Working");
+  handlePress = async () => {
+    await this._handleNetInfoSubscribe();
+
+    if (!this.state.isConnected) {
+      Toast.show({
+        text: "Please check your internet connectivity",
+        buttonText: "Okay",
+        position: "top"
+      });
+
+      this._handleNetInfoUnsubscribe();
+      return;
+    }
+    this._handleNetInfoUnsubscribe();
     this.props.navigation.navigate("cards");
+  };
+
+  handleConnectivityChange = isConnected => {
+    if (isConnected) {
+      this.setState({ isConnected });
+    } else {
+      this.setState({ isConnected });
+    }
+  };
+
+  _handleNetInfoSubscribe = async () => {
+    await NetInfo.isConnected
+      .fetch()
+      .then(isConnected => this.setState({ isConnected }));
+  };
+
+  _handleNetInfoUnsubscribe = () => {
+    NetInfo.isConnected.removeEventListener(
+      "connectionChange",
+      this.handleConnectivityChange
+    );
   };
 
   render() {
@@ -74,7 +109,15 @@ class App extends Component {
                 <Text>Shuffle</Text>
               </Button>
               <Button
-                onPress={() => this.handlePress()}
+                onPress={() => {
+                  Toast.show({
+                    text: "working on it",
+                    buttonText: "Okay",
+                    position: "top",
+                    duration: 3000,
+                    buttonTextStyle: { color: "#F44336" }
+                  });
+                }}
                 style={{
                   margin: 10,
                   borderColor: "#FF4081"
@@ -83,7 +126,9 @@ class App extends Component {
                 block
                 bordered
               >
-                <Text style={{ color: "#FF4081" }}>Continue</Text>
+                <Text style={{ color: "#FF4081" }}>
+                  {this.state.isConnected.toString()}
+                </Text>
               </Button>
             </View>
           </View>

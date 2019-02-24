@@ -6,7 +6,7 @@ export async function getShuffleTheCards() {
 }
 
 export async function getDrawACard(deck_id) {
-  return await http.get(`${BaseUrl.DeckOfCards}/${deck_id}/draw`);
+  return await http.get(`${BaseUrl.DeckOfCards}/${deck_id}/draw/?count=52`);
 }
 
 export async function getReshuffleTheCards(deck_id) {
